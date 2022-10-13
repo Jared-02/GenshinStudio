@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SevenZip;
+using System.Collections.Generic;
 
 namespace AssetStudio
 {
@@ -18,53 +21,98 @@ namespace AssetStudio
 
     public class UnityPropertySheet
     {
-        public KeyValuePair<string, UnityTexEnv>[] m_TexEnvs;
-        public KeyValuePair<string, int>[] m_Ints;
-        public KeyValuePair<string, float>[] m_Floats;
-        public KeyValuePair<string, Color>[] m_Colors;
+        private const string HDRPostfixName = "_HDR";
+        private const string STPostfixName = "_ST";
+        private const string TexelSizePostfixName = "_TexelSize";
+
+        public Dictionary<string, UnityTexEnv> m_TexEnvs;
+        public Dictionary<string, int> m_Ints;
+        public Dictionary<string, float> m_Floats;
+        public Dictionary<string, Color> m_Colors;
 
         public UnityPropertySheet(ObjectReader reader)
         {
             var version = reader.version;
 
             int m_TexEnvsSize = reader.ReadInt32();
-            m_TexEnvs = new KeyValuePair<string, UnityTexEnv>[m_TexEnvsSize];
+            m_TexEnvs = new Dictionary<string, UnityTexEnv>(m_TexEnvsSize);
             for (int i = 0; i < m_TexEnvsSize; i++)
             {
-                m_TexEnvs[i] = new KeyValuePair<string, UnityTexEnv>(reader.ReadAlignedString(), new UnityTexEnv(reader));
+                m_TexEnvs.Add(reader.ReadAlignedString(), new UnityTexEnv(reader));
             }
 
             if (version[0] >= 2021) //2021.1 and up
             {
                 int m_IntsSize = reader.ReadInt32();
-                m_Ints = new KeyValuePair<string, int>[m_IntsSize];
+                m_Ints = new Dictionary<string, int>(m_IntsSize);
                 for (int i = 0; i < m_IntsSize; i++)
                 {
-                    m_Ints[i] = new KeyValuePair<string, int>(reader.ReadAlignedString(), reader.ReadInt32());
+                    m_Ints.Add(reader.ReadAlignedString(), reader.ReadInt32());
                 }
             }
 
             int m_FloatsSize = reader.ReadInt32();
-            m_Floats = new KeyValuePair<string, float>[m_FloatsSize];
+            m_Floats = new Dictionary<string, float>(m_FloatsSize);
             for (int i = 0; i < m_FloatsSize; i++)
             {
-                m_Floats[i] = new KeyValuePair<string, float>(reader.ReadAlignedString(), reader.ReadSingle());
+                m_Floats.Add(reader.ReadAlignedString(), reader.ReadSingle());
             }
 
             int m_ColorsSize = reader.ReadInt32();
-            m_Colors = new KeyValuePair<string, Color>[m_ColorsSize];
+            m_Colors = new Dictionary<string, Color>(m_ColorsSize);
             for (int i = 0; i < m_ColorsSize; i++)
             {
-                m_Colors[i] = new KeyValuePair<string, Color>(reader.ReadAlignedString(), reader.ReadColor4());
+                m_Colors.Add(reader.ReadAlignedString(), reader.ReadColor4());
             }
+        }
+
+        public string FindPropertyNameByCRC28(uint crc)
+        {
+            foreach (var property in m_TexEnvs.Keys)
+            {
+                string hdrName = property + HDRPostfixName;
+                if (CRC.Verify28DigestUTF8(hdrName, crc))
+                {
+                    return hdrName;
+                }
+                string stName = property + STPostfixName;
+                if (CRC.Verify28DigestUTF8(stName, crc))
+                {
+                    return stName;
+                }
+                string texelName = property + TexelSizePostfixName;
+                if (CRC.Verify28DigestUTF8(texelName, crc))
+                {
+                    return texelName;
+                }
+            }
+            foreach (var property in m_Floats.Keys)
+            {
+                if (CRC.Verify28DigestUTF8(property, crc))
+                {
+                    return property;
+                }
+            }
+            foreach (var property in m_Colors.Keys)
+            {
+                if (CRC.Verify28DigestUTF8(property, crc))
+                {
+                    return property;
+                }
+            }
+            return null;
         }
     }
 
+    [JsonObject(MemberSerialization.OptIn)]
     public sealed class Material : NamedObject
     {
+        [JsonProperty]
         public PPtr<Shader> m_Shader;
+        [JsonProperty]
         public UnityPropertySheet m_SavedProperties;
-        public KeyValuePair<string, string>[] m_StringTagMap;
+        [JsonProperty]
+        public Dictionary<string, string> m_StringTagMap;
 
         public Material(ObjectReader reader) : base(reader)
         {
@@ -96,12 +144,12 @@ namespace AssetStudio
             if (version[0] > 5 || (version[0] == 5 && version[1] >= 1)) //5.1 and up
             {
                 var stringTagMapSize = reader.ReadInt32();
-                m_StringTagMap = new KeyValuePair<string, string>[stringTagMapSize];
+                m_StringTagMap = new Dictionary<string, string>(stringTagMapSize);
                 for (int i = 0; i < stringTagMapSize; i++)
                 {
                     var first = reader.ReadAlignedString();
                     var second = reader.ReadAlignedString();
-                    m_StringTagMap[i] = new KeyValuePair<string, string>(first, second);
+                    m_StringTagMap.Add(first, second);
                 }
             }
 
@@ -113,6 +161,11 @@ namespace AssetStudio
             m_SavedProperties = new UnityPropertySheet(reader);
 
             //vector m_BuildTextureStacks 2020 and up
+        }
+
+        public string FindPropertyNameByCRC28(uint crc)
+        {
+            return m_SavedProperties.FindPropertyNameByCRC28(crc);
         }
     }
 }

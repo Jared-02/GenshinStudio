@@ -71,6 +71,21 @@ namespace AssetStudioGUI.Properties
                 this["enablePreview"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enableResolveDependencies
+        {
+            get
+            {
+                return ((bool)(this["enableResolveDependencies"]));
+            }
+            set
+            {
+                this["enableResolveDependencies"] = value;
+            }
+        }
 
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -99,6 +114,21 @@ namespace AssetStudioGUI.Properties
             set
             {
                 this["openAfterExport"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int selectedGame
+        {
+            get
+            {
+                return ((int)(this["selectedGame"]));
+            }
+            set
+            {
+                this["selectedGame"] = value;
             }
         }
 
@@ -209,6 +239,21 @@ namespace AssetStudioGUI.Properties
 
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool disableShader
+        {
+            get
+            {
+                return ((bool)(this["disableShader"]));
+            }
+            set
+            {
+                this["disableShader"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("147")]
         public byte key
         {
@@ -234,6 +279,21 @@ namespace AssetStudioGUI.Properties
             set
             {
                 this["enableXor"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ignoreController
+        {
+            get
+            {
+                return ((bool)(this["ignoreController"]));
+            }
+            set
+            {
+                this["ignoreController"] = value;
             }
         }
 

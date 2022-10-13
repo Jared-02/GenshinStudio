@@ -1,13 +1,12 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 
 namespace AssetStudio
 {
-    public partial class BlkFile
+    public class BlkFile
     {
-        private Dictionary<long, Mhy0File> _files = null;
-        public Dictionary<long, Mhy0File> Files => _files;
+        public Dictionary<long, StreamFile[]> Bundles = new Dictionary<long, StreamFile[]>();
         public BlkFile(FileReader reader)
         {
             reader.Endian = EndianType.LittleEndian;
@@ -25,21 +24,20 @@ namespace AssetStudio
 
             data = Crypto.Decrypt(key, data, blockSize);
 
-            _files = new Dictionary<long, Mhy0File>();
             using (var ms = new MemoryStream(data))
             using (var subReader = new EndianBinaryReader(ms, reader.Endian))
             {
                 long pos = -1;
                 try
                 {
-                    if (reader.MHY0Pos.Length != 0)
+                    if (reader.BundlePos.Length != 0)
                     {
-                        for (int i = 0; i < reader.MHY0Pos.Length; i++)
+                        for (int i = 0; i < reader.BundlePos.Length; i++)
                         {
-                            pos = reader.MHY0Pos[i];
+                            pos = reader.BundlePos[i];
                             subReader.Position = pos;
                             var mhy0 = new Mhy0File(subReader, reader.FullPath);
-                            Files.Add(pos, mhy0);
+                            Bundles.Add(pos, mhy0.FileList);
                         }
                     }
                     else
@@ -48,7 +46,7 @@ namespace AssetStudio
                         {
                             pos = subReader.Position;
                             var mhy0 = new Mhy0File(subReader, reader.FullPath);
-                            Files.Add(pos, mhy0);
+                            Bundles.Add(pos, mhy0.FileList);
                         }
                     }
                 }

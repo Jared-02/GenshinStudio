@@ -15,6 +15,10 @@ namespace AssetStudio
         {
             m_Avatar = new PPtr<Avatar>(reader);
             m_Controller = new PPtr<RuntimeAnimatorController>(reader);
+            if (reader.Game.Name == "GI")
+            {
+                var m_FBIKAvatar = new PPtr<Object>(reader); //FBIKAvatar placeholder
+            }
             var m_CullingMode = reader.ReadInt32();
 
             if (version[0] > 4 || (version[0] == 4 && version[1] >= 5)) //4.5 and up
@@ -62,6 +66,32 @@ namespace AssetStudio
                 var m_KeepAnimatorControllerStateOnDisable = reader.ReadBoolean();
                 reader.AlignStream();
             }
+        }
+
+        public Dictionary<uint, string> BuildTOS()
+        {
+            if (version[0] > 4 || (version[0] == 4 && version[1] >= 3))
+            {
+                if (m_HasTransformHierarchy)
+                {
+                    if (m_GameObject.TryGet(out var go))
+                    {
+                        return go.BuildTOS();
+                    }
+                }
+                else
+                {
+                    return new Dictionary<uint, string>() { { 0, string.Empty } };
+                }
+            }
+            else
+            {
+                if (m_GameObject.TryGet(out var go))
+                {
+                    return go.BuildTOS();
+                }
+            }
+            return null;
         }
     }
 }

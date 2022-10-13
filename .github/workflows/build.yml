@@ -1,11 +1,15 @@
-name: GSBuild
+name: Build
 
 on:
   push:
-    tags: [ '*' ]
-
-  workflow_dispatch:
-
+    branches:
+      - 'master'
+    paths-ignore:
+      - '**/LICENSE'
+      - '**/README.md'
+      - '**/build.yml'
+      - '**/.gitignore'
+      - '**/.gitattributes'
 jobs:
   build:
     runs-on: windows-latest
@@ -35,6 +39,12 @@ jobs:
       - name: Build .Net6
         run: msbuild /t:AssetStudioGUI:publish /p:Configuration=Release /p:TargetFramework=net6.0-windows /p:SelfContained=false /verbosity:minimal
 
+      - name: Build .Net5 CLI
+        run: msbuild /t:AssetStudioCLI:publish /p:Configuration=Release /p:TargetFramework=net5.0-windows /p:SelfContained=false /verbosity:minimal
+
+      - name: Build .Net6 CLI
+        run: msbuild /t:AssetStudioCLI:publish /p:Configuration=Release /p:TargetFramework=net6.0-windows /p:SelfContained=false /verbosity:minimal
+
       - name: Upload .Net472 Artifact
         uses: actions/upload-artifact@v2
         with:
@@ -48,6 +58,18 @@ jobs:
           path: AssetStudioGUI/bin/Release/net5.0-windows/publish
 
       - name: Upload .Net6 Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: net6.0-windows
+          path: AssetStudioGUI/bin/Release/net6.0-windows/publish
+
+      - name: Upload .Net5 CLI Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: net5.0-windows
+          path: AssetStudioGUI/bin/Release/net5.0-windows/publish
+
+      - name: Upload .Net6 CLI Artifact
         uses: actions/upload-artifact@v2
         with:
           name: net6.0-windows

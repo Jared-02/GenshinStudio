@@ -8,7 +8,6 @@ namespace AssetStudio
         public long offset; //ulong
         public uint size;
         public string path;
-        public string asb;
 
         public StreamingInfo(ObjectReader reader)
         {
@@ -24,7 +23,6 @@ namespace AssetStudio
             }
             size = reader.ReadUInt32();
             path = reader.ReadAlignedString();
-            //asb = reader.ReadAlignedString();
         }
     }
 
@@ -206,6 +204,7 @@ namespace AssetStudio
         R8,
         ETC_RGB4Crunched,
         ETC2_RGBA8Crunched,
+        R16_2,
         ASTC_HDR_4x4,
         ASTC_HDR_5x5,
         ASTC_HDR_6x6,

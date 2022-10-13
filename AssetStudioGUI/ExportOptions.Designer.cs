@@ -32,6 +32,8 @@
             this.OKbutton = new System.Windows.Forms.Button();
             this.Cancel = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.disableShader = new System.Windows.Forms.CheckBox();
+            this.ignoreController = new System.Windows.Forms.CheckBox();
             this.disableRndrr = new System.Windows.Forms.CheckBox();
             this.exportIndexObject = new System.Windows.Forms.CheckBox();
             this.exportAssetBundle = new System.Windows.Forms.CheckBox();
@@ -103,6 +105,8 @@
             // groupBox1
             // 
             this.groupBox1.AutoSize = true;
+            this.groupBox1.Controls.Add(this.disableShader);
+            this.groupBox1.Controls.Add(this.ignoreController);
             this.groupBox1.Controls.Add(this.disableRndrr);
             this.groupBox1.Controls.Add(this.exportIndexObject);
             this.groupBox1.Controls.Add(this.exportAssetBundle);
@@ -115,10 +119,32 @@
             this.groupBox1.Controls.Add(this.converttexture);
             this.groupBox1.Location = new System.Drawing.Point(12, 13);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(232, 258);
+            this.groupBox1.Size = new System.Drawing.Size(232, 277);
             this.groupBox1.TabIndex = 9;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Export";
+            // 
+            // disableShader
+            // 
+            this.disableShader.AutoSize = true;
+            this.disableShader.Location = new System.Drawing.Point(97, 219);
+            this.disableShader.Name = "disableShader";
+            this.disableShader.Size = new System.Drawing.Size(98, 17);
+            this.disableShader.TabIndex = 22;
+            this.disableShader.Text = "Disable Shader";
+            this.disableShader.UseVisualStyleBackColor = true;
+            // 
+            // ignoreController
+            // 
+            this.ignoreController.AutoSize = true;
+            this.ignoreController.Checked = true;
+            this.ignoreController.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ignoreController.Location = new System.Drawing.Point(6, 241);
+            this.ignoreController.Name = "ignoreController";
+            this.ignoreController.Size = new System.Drawing.Size(152, 17);
+            this.ignoreController.TabIndex = 21;
+            this.ignoreController.Text = "Ignore Controller Animation";
+            this.ignoreController.UseVisualStyleBackColor = true;
             // 
             // disableRndrr
             // 
@@ -516,9 +542,9 @@
             this.groupBox3.Controls.Add(this.enableXor);
             this.groupBox3.Controls.Add(this.key);
             this.groupBox3.Controls.Add(this.label7);
-            this.groupBox3.Location = new System.Drawing.Point(12, 274);
+            this.groupBox3.Location = new System.Drawing.Point(12, 296);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(232, 101);
+            this.groupBox3.Size = new System.Drawing.Size(232, 79);
             this.groupBox3.TabIndex = 11;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "MiHoYoBinData";
@@ -528,7 +554,7 @@
             this.enableXor.AutoSize = true;
             this.enableXor.Checked = true;
             this.enableXor.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.enableXor.Location = new System.Drawing.Point(11, 22);
+            this.enableXor.Location = new System.Drawing.Point(9, 24);
             this.enableXor.Name = "enableXor";
             this.enableXor.Size = new System.Drawing.Size(85, 17);
             this.enableXor.TabIndex = 12;
@@ -538,7 +564,7 @@
             // key
             // 
             this.key.Hexadecimal = true;
-            this.key.Location = new System.Drawing.Point(135, 21);
+            this.key.Location = new System.Drawing.Point(124, 21);
             this.key.Maximum = new decimal(new int[] {
             255,
             0,
@@ -551,7 +577,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(104, 23);
+            this.label7.Location = new System.Drawing.Point(97, 25);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(25, 13);
             this.label7.TabIndex = 7;
@@ -635,5 +661,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.CheckBox enableXor;
         private System.Windows.Forms.CheckBox disableRndrr;
+        private System.Windows.Forms.CheckBox ignoreController;
+        private System.Windows.Forms.CheckBox disableShader;
     }
 }

@@ -10,6 +10,8 @@ namespace AssetStudio
 {
     public class AssetsManager
     {
+        public Game Game;
+        public bool ResolveDependancies;
         public string SpecifyUnityVersion;
         public List<SerializedFile> assetsFileList = new List<SerializedFile>();
 
@@ -22,20 +24,15 @@ namespace AssetStudio
 
         public void LoadFiles(params string[] files)
         {
-            var path = Path.GetDirectoryName(Path.GetFullPath(files[0]));
-            AsbManager.ProcessDependancies(ref files);
-            MergeSplitAssets(path);
-            var toReadFile = ProcessingSplitFiles(files.ToList());
-            Load(toReadFile);
+            if (ResolveDependancies)
+                files = CABManager.ProcessDependencies(files);
+            Load(files);
         }
 
         public void LoadFolder(string path)
         {
-            MergeSplitAssets(path, true);
             var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).ToArray();
-            var filesList = files.ToList();
-            var toReadFile = ProcessingSplitFiles(filesList);
-            Load(toReadFile);
+            Load(files);
         }
 
         private void Load(string[] files)
@@ -57,7 +54,7 @@ namespace AssetStudio
             importFiles.Clear();
             importFilesHash.Clear();
             assetsFileListHash.Clear();
-            AsbManager.offsets.Clear();
+            CABManager.offsets.Clear();
 
             ReadAssets();
             ProcessAssets();
@@ -65,7 +62,7 @@ namespace AssetStudio
 
         private void LoadFile(string fullName)
         {
-            var reader = new FileReader(fullName);
+            var reader = new FileReader(fullName, Game);
             LoadFile(reader);
         }
 
@@ -79,8 +76,8 @@ namespace AssetStudio
                 case FileType.BundleFile:
                     LoadBundleFile(reader);
                     break;
-                case FileType.BlkFile:
-                    LoadBlkFile(reader);
+                case FileType.HoyoFile:
+                    LoadHoYoFile(reader);
                     break;
                 case FileType.WebFile:
                     LoadWebFile(reader);
@@ -154,7 +151,7 @@ namespace AssetStudio
             try
             {
                 var bundleFile = new BundleFile(reader);
-                foreach (var file in bundleFile.fileList)
+                foreach (var file in bundleFile.FileList)
                 {
                     var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
                     var subReader = new FileReader(dummyPath, file.stream);
@@ -320,20 +317,20 @@ namespace AssetStudio
             }
         }
 
-        private void LoadBlkFile(FileReader reader)
+        private void LoadHoYoFile(FileReader reader)
         {
             Logger.Info("Loading " + reader.FileName);
             try
             {
-                BlkFile blkFile;
-                reader.MHY0Pos = AsbManager.offsets.TryGetValue(reader.FullPath, out var list) ? list.ToArray() : Array.Empty<long>();
-                blkFile = new BlkFile(reader);
-                foreach (var mhy0 in blkFile.Files)
+                HoYoFile hoyoFile;
+                reader.BundlePos = CABManager.offsets.TryGetValue(reader.FullPath, out var list) ? list.ToArray() : Array.Empty<long>();
+                hoyoFile = new HoYoFile(reader);
+                foreach (var bundle in hoyoFile.Bundles)
                 {
-                    foreach (var file in mhy0.Value.FileList)
+                    foreach (var file in bundle.Value)
                     {
                         var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
-                        var cabReader = new FileReader(dummyPath, file.stream);
+                        var cabReader = new FileReader(dummyPath, file.stream, Game);
                         if (cabReader.FileType == FileType.AssetsFile)
                         {
                             var assetsFile = new SerializedFile(cabReader, this, reader.FullPath);
@@ -350,7 +347,7 @@ namespace AssetStudio
             }
             catch (Exception e)
             {
-                Logger.Error($"Error while reading blk file {reader.FileName}", e);
+                Logger.Error($"Error while reading file {reader.FileName}", e);
             }
             finally
             {
@@ -470,6 +467,7 @@ namespace AssetStudio
                                 obj = new RectTransform(objectReader);
                                 break;
                             case ClassIDType.Shader:
+                                if (!Shader.Parsable) continue;
                                 obj = new Shader(objectReader);
                                 break;
                             case ClassIDType.SkinnedMeshRenderer:
@@ -560,20 +558,23 @@ namespace AssetStudio
                     }
                     else if (obj is SpriteAtlas m_SpriteAtlas)
                     {   
-                        foreach (var m_PackedSprite in m_SpriteAtlas.m_PackedSprites)
+                        if (m_SpriteAtlas.m_RenderDataMap.Count > 0)
                         {
-                            if (m_PackedSprite.TryGet(out var m_Sprite))
+                            foreach (var m_PackedSprite in m_SpriteAtlas.m_PackedSprites)
                             {
-                                if (m_Sprite.m_SpriteAtlas.IsNull)
+                                if (m_PackedSprite.TryGet(out var m_Sprite))
                                 {
-                                    m_Sprite.m_SpriteAtlas.Set(m_SpriteAtlas);
-                                }
-                                else
-                                {
-                                    m_Sprite.m_SpriteAtlas.TryGet(out var m_SpriteAtlaOld);
-                                    if (m_SpriteAtlaOld.m_IsVariant)
+                                    if (m_Sprite.m_SpriteAtlas.IsNull)
                                     {
                                         m_Sprite.m_SpriteAtlas.Set(m_SpriteAtlas);
+                                    }
+                                    else
+                                    {
+                                        m_Sprite.m_SpriteAtlas.TryGet(out var m_SpriteAtlaOld);
+                                        if (m_SpriteAtlaOld.m_IsVariant)
+                                        {
+                                            m_Sprite.m_SpriteAtlas.Set(m_SpriteAtlas);
+                                        }
                                     }
                                 }
                             }

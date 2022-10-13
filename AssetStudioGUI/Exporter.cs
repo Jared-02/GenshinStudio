@@ -69,8 +69,8 @@ namespace AssetStudioGUI
             if (!TryExportFile(exportPath, item, ".shader", out var exportFullPath))
                 return false;
             var m_Shader = (Shader)item.Asset;
-            var bytes = m_Shader.Convert();
-            File.WriteAllBytes(exportFullPath, bytes);
+            var str = m_Shader.Convert(Studio.Game);
+            File.WriteAllText(exportFullPath, str);
             return true;
         }
 
@@ -301,6 +301,16 @@ namespace AssetStudioGUI
             return false;
         }
 
+        public static bool ExportMaterial(AssetItem item, string exportPath)
+        {
+            if (!TryExportFile(exportPath, item, ".json", out var exportFullPath))
+                return false;
+            var m_Material = (Material)item.Asset;
+            var str = JsonConvert.SerializeObject(m_Material, Formatting.Indented);
+            File.WriteAllText(exportFullPath, str);
+            return true;
+        }
+
         public static bool ExportRawFile(AssetItem item, string exportPath)
         {
             if (!TryExportFile(exportPath, item, ".dat", out var exportFullPath))
@@ -327,6 +337,16 @@ namespace AssetStudioGUI
             return false;
         }
 
+        public static bool ExportAnimationClip(AssetItem item, string exportPath)
+        {
+            if (!TryExportFile(exportPath, item, ".anim", out var exportFullPath))
+                return false;
+            var m_AnimationClip = (AnimationClip)item.Asset;
+            var str = m_AnimationClip.Convert(Studio.Game);
+            File.WriteAllText(exportFullPath, str);
+            return true;
+        }
+
         public static bool ExportAnimator(AssetItem item, string exportPath, List<AssetItem> animationList = null)
         {
             var exportFullPath = Path.Combine(exportPath, item.Text, item.Text + ".fbx");
@@ -336,8 +356,8 @@ namespace AssetStudioGUI
             }
             var m_Animator = (Animator)item.Asset;
             var convert = animationList != null
-                ? new ModelConverter(m_Animator, Properties.Settings.Default.convertType, animationList.Select(x => (AnimationClip)x.Asset).ToArray())
-                : new ModelConverter(m_Animator, Properties.Settings.Default.convertType);
+                ? new ModelConverter(m_Animator, Properties.Settings.Default.convertType, Studio.Game, animationList.Select(x => (AnimationClip)x.Asset).ToArray(), Properties.Settings.Default.ignoreController)
+                : new ModelConverter(m_Animator, Properties.Settings.Default.convertType, Studio.Game, ignoreController: Properties.Settings.Default.ignoreController);
             ExportFbx(convert, exportFullPath);
             return true;
         }
@@ -345,8 +365,8 @@ namespace AssetStudioGUI
         public static void ExportGameObject(GameObject gameObject, string exportPath, List<AssetItem> animationList = null)
         {
             var convert = animationList != null
-                ? new ModelConverter(gameObject, Properties.Settings.Default.convertType, animationList.Select(x => (AnimationClip)x.Asset).ToArray())
-                : new ModelConverter(gameObject, Properties.Settings.Default.convertType);
+                ? new ModelConverter(gameObject, Properties.Settings.Default.convertType, Studio.Game, animationList.Select(x => (AnimationClip)x.Asset).ToArray(), Properties.Settings.Default.ignoreController)
+                : new ModelConverter(gameObject, Properties.Settings.Default.convertType, Studio.Game, ignoreController: Properties.Settings.Default.ignoreController);
             exportPath = exportPath + FixFileName(gameObject.m_Name) + ".fbx";
             ExportFbx(convert, exportPath);
         }
@@ -355,8 +375,8 @@ namespace AssetStudioGUI
         {
             var rootName = Path.GetFileNameWithoutExtension(exportPath);
             var convert = animationList != null
-                ? new ModelConverter(rootName, gameObject, Properties.Settings.Default.convertType, animationList.Select(x => (AnimationClip)x.Asset).ToArray())
-                : new ModelConverter(rootName, gameObject, Properties.Settings.Default.convertType);
+                ? new ModelConverter(rootName, gameObject, Properties.Settings.Default.convertType, Studio.Game, animationList.Select(x => (AnimationClip)x.Asset).ToArray(), Properties.Settings.Default.ignoreController)
+                : new ModelConverter(rootName, gameObject, Properties.Settings.Default.convertType, Studio.Game, ignoreController: Properties.Settings.Default.ignoreController);
             ExportFbx(convert, exportPath);
         }
 
@@ -420,10 +440,12 @@ namespace AssetStudioGUI
                     return ExportMovieTexture(item, exportPath);
                 case ClassIDType.Sprite:
                     return ExportSprite(item, exportPath);
+                case ClassIDType.Material:
+                    return ExportMaterial(item, exportPath);
                 case ClassIDType.Animator:
                     return ExportAnimator(item, exportPath);
                 case ClassIDType.AnimationClip:
-                    return false;
+                    return ExportAnimationClip(item, exportPath);
                 case ClassIDType.AssetBundle:
                     return ExportAssetBundle(item, exportPath);
                 case ClassIDType.IndexObject:
